@@ -1,14 +1,16 @@
 import { useNotes } from '@/context/NoteContext'
 import { Note } from '@prisma/client'
+import { HiTrash, HiPencil } from 'react-icons/hi'
 
 function NoteCard({ note }: { note: Note }) {
-  const { deleteNote } = useNotes()
+  const { deleteNote, setSelectedNote } = useNotes()
 
   return (
     <div className='bg-slate-400 p-4 my-2 rounded-md flex justify-between'>
       <div>
         <h1 className='text-2xl font-bold'>{note.title}</h1>
         <p>{note.content}</p>
+        <p>{new Date(note.createdAt).toLocaleDateString()}</p>
       </div>
 
       <div className='flex gap-x-2'>
@@ -19,9 +21,11 @@ function NoteCard({ note }: { note: Note }) {
             }
           }}
         >
-          Delete
+          <HiTrash className='text-2xl text-red-600' />
         </button>
-        <button>Edit</button>
+        <button onClick={() => setSelectedNote(note)}>
+          <HiPencil className='text-2xl text-blue-600' />
+        </button>
       </div>
     </div>
   )

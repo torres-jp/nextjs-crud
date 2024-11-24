@@ -1,5 +1,5 @@
 'use client'
-import { CreateNote } from '@/interfaces/note'
+import { CreateNote, UpdateNote } from '@/interfaces/note'
 import { createContext, useContext, useState } from 'react'
 import { Note } from '@prisma/client'
 
@@ -8,11 +8,17 @@ export const NoteContext = createContext<{
   loadNotes: () => Promise<void>
   createNotes: (note: CreateNote) => Promise<void>
   deleteNote: (id: number) => Promise<void>
+  selectedNote: Note | null
+  setSelectedNote: (note: Note | null) => void
+  updateNote: (id: number, note: UpdateNote) => Promise<void>
 }>({
   notes: [],
   loadNotes: async () => {},
   createNotes: async (note: CreateNote) => {},
   deleteNote: async (id: number) => {},
+  selectedNote: null,
+  setSelectedNote: (note: Note | null) => {},
+  updateNote: async (id: number, note: UpdateNote) => {},
 })
 
 export const useNotes = () => {
@@ -25,6 +31,7 @@ export const useNotes = () => {
 
 export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
   const [notes, setNotes] = useState<Note[]>([])
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
 
   async function loadNotes() {
     const res = await fetch('/api/notes')
@@ -56,8 +63,31 @@ export const NotesProvider = ({ children }: { children: React.ReactNode }) => {
     setNotes(notes.filter((note) => note.id !== id))
   }
 
+  async function updateNote(id: number, note: UpdateNote) {
+    const res = await fetch('/api/notes/' + id, {
+      method: 'PUT',
+      body: JSON.stringify(note),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    const data = await res.json()
+    console.log(data)
+    setNotes(notes.map((note) => (note.id === id ? data : note)))
+  }
+
   return (
-    <NoteContext.Provider value={{ notes, loadNotes, createNotes, deleteNote }}>
+    <NoteContext.Provider
+      value={{
+        notes,
+        loadNotes,
+        createNotes,
+        deleteNote,
+        selectedNote,
+        setSelectedNote,
+        updateNote,
+      }}
+    >
       {children}
     </NoteContext.Provider>
   )
